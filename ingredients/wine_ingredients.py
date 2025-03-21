@@ -3,7 +3,6 @@ import csv
 import re
 
 client = ollama.Client()
-
 model = "llama_general"
 
 # Prompt templates for each field
@@ -19,12 +18,18 @@ PROMPTS = {
 input_file = r"C:\\Users\\user\\Desktop\\user1\\list_of_wines.csv"
 output_file = r"C:\\Users\\user\\Desktop\\user1\\wine_ingredients_structured.csv"
 
-# Read wine names
+# Read wine names from column 11 (index 10)
+wine_list = []
 with open(input_file, mode='r', newline='', encoding='latin-1') as infile:
     reader = csv.reader(infile)
-    wine_list = [row[0].strip() for row in reader]
+    next(reader)  # Skip header if present
 
-# Write results
+    for row in reader:
+        if len(row) > 10 and row[10].strip():
+            wine_name = row[10].strip()
+            wine_list.append(wine_name)
+
+# Write results to output CSV
 with open(output_file, mode='w', newline='', encoding='latin-1') as outfile:
     writer = csv.writer(outfile)
     writer.writerow([
@@ -45,7 +50,6 @@ with open(output_file, mode='w', newline='', encoding='latin-1') as outfile:
             try:
                 response = client.generate(model=model, prompt=prompt)
                 result = response.get('response', '').strip()
-                # Basic cleanup
                 result = result.replace('\n', ' ').strip()
             except Exception as e:
                 print(f"Error while processing '{field}' for '{wine}': {e}")
